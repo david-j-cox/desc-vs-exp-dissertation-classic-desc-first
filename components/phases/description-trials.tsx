@@ -25,10 +25,11 @@ interface DescriptionTrialsProps {
 export default function DescriptionTrials({ onAdvance, addTrialData }: DescriptionTrialsProps) {
   const [currentTrial, setCurrentTrial] = useState(0)
   const [choice, setChoice] = useState<"option1" | "option2" | null>(null)
+  const [isInterval, setIsInterval] = useState(false)
 
   const handleChoice = (selected: "option1" | "option2") => {
     setChoice(selected)
-    
+    setIsInterval(true)
     // Record the trial data
     addTrialData({
       phase: "description-trials",
@@ -37,13 +38,15 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
       questionType: "probability",
     })
 
-    // Move to next trial or complete phase
-    if (currentTrial < TRIALS.length - 1) {
-      setCurrentTrial(prev => prev + 1)
-      setChoice(null)
-    } else {
-      onAdvance()
-    }
+    setTimeout(() => {
+      setIsInterval(false)
+      if (currentTrial < TRIALS.length - 1) {
+        setCurrentTrial(prev => prev + 1)
+        setChoice(null)
+      } else {
+        onAdvance()
+      }
+    }, 500)
   }
 
   const trial = TRIALS[currentTrial]
@@ -52,29 +55,34 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Trial {currentTrial + 1} of {TRIALS.length}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <p className="text-lg font-medium">Which would you prefer?</p>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Button
-                variant={choice === "option1" ? "default" : "outline"}
-                className="h-24 text-lg"
-                onClick={() => handleChoice("option1")}
-              >
-                {trial.p1 * 100}% chance of ${trial.v1}
-              </Button>
-              
-              <Button
-                variant={choice === "option2" ? "default" : "outline"}
-                className="h-24 text-lg"
-                onClick={() => handleChoice("option2")}
-              >
-                {trial.p2 * 100}% chance of ${trial.v2}
-              </Button>
-            </div>
+          <div className="text-center flex flex-col items-center space-y-4">
+            <p className="text-2xl font-medium text-center">Which would you prefer?</p>
+            {isInterval ? (
+              <div className="h-64 flex items-center justify-center w-full">
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  variant={choice === "option1" ? "default" : "outline"}
+                  className="w-64 h-64 bg-white border border-gray-300 text-lg"
+                  onClick={() => handleChoice("option1")}
+                  disabled={isInterval}
+                >
+                  {trial.p1 * 100}% chance of ${trial.v1}
+                </Button>
+                
+                <Button
+                  variant={choice === "option2" ? "default" : "outline"}
+                  className="w-64 h-64 bg-white border border-gray-300 text-lg"
+                  onClick={() => handleChoice("option2")}
+                  disabled={isInterval}
+                >
+                  {trial.p2 * 100}% chance of ${trial.v2}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
