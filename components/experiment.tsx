@@ -14,10 +14,13 @@ import FinalChoiceBlueOrange from "./phases/final-choice-blue-orange"
 import SecondDescChoice from "./phases/second-desc-choice"
 import CompletionPage from "./phases/completion-page"
 import { useLocalStorage } from "@/hooks/use-local-storage"
+import DescriptionTrials from "./phases/description-trials"
 
 export type Phase = 
   | "consent"
   | "instructions"
+  | "description-trials"
+  | "description-trials-interval"
   | "forced-trials-with-images"
   | "forced-trials-with-images-interval"
   | "choice-trials-images"
@@ -95,6 +98,8 @@ export default function Experiment({ onComplete }: { onComplete?: () => void }) 
     const phases: Phase[] = [
       "consent",
       "instructions",
+      "description-trials",
+      "description-trials-interval",
       "forced-trials-with-images",
       "forced-trials-with-images-interval",
       "choice-trials-images",
@@ -173,6 +178,15 @@ export default function Experiment({ onComplete }: { onComplete?: () => void }) 
       {currentPhase === "consent" && <ConsentPage onAdvance={advancePhase} />}
 
       {currentPhase === "instructions" && <InstructionsPage onAdvance={advancePhase} />}
+
+      {currentPhase === "description-trials" && (
+        <DescriptionTrials
+          onAdvance={advancePhase}
+          addTrialData={addTrialData}
+        />
+      )}
+
+      {currentPhase === "description-trials-interval" && <InterConditionInterval onComplete={advancePhase} />}
 
       {currentPhase === "forced-trials-with-images" && (
         <ForcedTrialsWithImages 
