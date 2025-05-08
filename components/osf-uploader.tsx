@@ -18,8 +18,8 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
 
   const generateCSV = (data: ExperimentData): string => {
-    // Create CSV header
-    let csv = "participant_id,phase,trial_number,condition,stimulus,choice,outcome,points,timestamp\n"
+    // Create CSV header (remove outcome)
+    let csv = "participant_id,phase,trial_number,condition,stimulus,choice,points,timestamp\n"
 
     // Add each trial as a row
     data.trials.forEach((trial) => {
@@ -30,7 +30,6 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
         trial.condition || "",
         trial.stimulus || "",
         trial.choice || "",
-        trial.outcome !== undefined ? trial.outcome : "",
         trial.points || 0,
         new Date(trial.timestamp).toISOString(),
       ]
@@ -63,7 +62,7 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
       // Use the hardcoded OSF configuration
       const osfConfig = OSF_CONFIG
 
-      if (!osfConfig.token || !osfConfig.projectId) {
+      if (!osfConfig.projectId) {
         throw new Error("OSF configuration is incomplete. Please check the OSF configuration in the code.")
       }
 
@@ -103,6 +102,22 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
     }
   }
 
+  // Helper to trigger CSV download
+  const downloadCSV = () => {
+    if (!experimentData) return
+    const csvData = generateCSV(experimentData)
+    const fileName = `experiment-data-${experimentData.participantId}-${new Date().toISOString().split("T")[0]}.csv`
+    const blob = new Blob([csvData], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   // If autoUpload is true and we have data but haven't started uploading yet, trigger the upload
   if (autoUpload && experimentData && uploadStatus === "idle") {
     uploadToOSF()
@@ -110,15 +125,23 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
 
   return (
     <div className="space-y-4">
-      <Button onClick={uploadToOSF} disabled={uploadStatus === "uploading" || !experimentData} className="w-full">
-        {uploadStatus === "uploading" ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading to OSF...
-          </>
-        ) : (
-          "Upload Data to OSF"
-        )}
-      </Button>
+      {uploadStatus !== "success" && (
+        <Button
+          onClick={uploadStatus === "error" ? downloadCSV : uploadToOSF}
+          disabled={uploadStatus === "uploading" || !experimentData}
+          className="w-full"
+        >
+          {uploadStatus === "uploading" ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading to OSF...
+            </>
+          ) : uploadStatus === "error" ? (
+            "Download Data as CSV"
+          ) : (
+            "Upload Data to OSF"
+          )}
+        </Button>
+      )}
 
       {uploadStatus === "success" && (
         <Alert className="bg-green-50 border-green-200">
@@ -135,7 +158,7 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
           <AlertDescription>
             {errorMessage || "Failed to upload data to OSF."}
             <p className="mt-2 text-sm">
-              Please download your data using the "Export as CSV" button and send it to the researcher.
+              Please download your data using the "Download Data as CSV" button and send it to the researcher at lweil1@endicott.edu.
             </p>
           </AlertDescription>
         </Alert>

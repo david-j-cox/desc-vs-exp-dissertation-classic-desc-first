@@ -7,10 +7,9 @@ import { useRouter } from "next/navigation"
 
 interface ForcedBlueAndOrangeProps {
   onAdvance: () => void
-  addTrialData: (data: Omit<ExperimentData["trials"][0], "timestamp">) => void
+  addTrialData: (data: Omit<ExperimentData["trials"][0], "timestamp" | "trialNumber">) => void
   setExperimentData: (data: ExperimentData) => void
   experimentData: ExperimentData
-  currentTrialNumber: number
 }
 
 interface ButtonConfig {
@@ -20,7 +19,7 @@ interface ButtonConfig {
   points: number
 }
 
-export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperimentData, experimentData, currentTrialNumber }: ForcedBlueAndOrangeProps) {
+export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperimentData, experimentData }: ForcedBlueAndOrangeProps) {
   const router = useRouter()
   const buttons: ButtonConfig[] = [
     { id: "blue", color: "bg-blue-500", probability: 1.0, points: 50 },
@@ -34,21 +33,27 @@ export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperi
   const [message, setMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const trialsPerButton = 10
+  const [shouldAdvancePhase, setShouldAdvancePhase] = useState(false)
+
+  // Define the exact outcomes for each trial of each button
+  const TRIAL_OUTCOMES: Record<string, boolean[]> = {
+    blue: [true, true, true, true, true, true, true, true, true, true], // 10 trials, all true
+    orange: [true, false, false, true, true, false, true, false, true, false], // 10 trials, 5 true
+  }
 
   const currentButton = buttons[currentButtonIndex]
 
   const handleButtonClick = () => {
     if (showOutcome) return
 
-    // Determine outcome based on probability
-    const success = Math.random() < currentButton.probability
+    // Get outcome from hard-coded array instead of random
+    const success = TRIAL_OUTCOMES[currentButton.id][trialCount]
     setOutcome(success)
     setShowOutcome(true)
 
     // Record trial data
     addTrialData({
       phase: "forced-blue-and-orange",
-      trialNumber: currentTrialNumber,
       condition: `forced_${currentButton.id}`,
       stimulus: currentButton.id,
       choice: currentButton.id,
@@ -68,21 +73,34 @@ export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperi
         // Move to next button
         setIsLoading(true)
         setTimeout(() => {
+          // Reset points when moving to the next button
+          const newData: ExperimentData = {
+            ...experimentData,
+            totalPoints: 0
+          }
+          setExperimentData(newData)
           setCurrentButtonIndex(prev => prev + 1)
           setTrialCount(0)
           setIsLoading(false)
         }, 3000)
       } else {
         // All trials completed
-        onAdvance()
+        setShouldAdvancePhase(true)
       }
-    }, 1500)
+    }, 1000)
   }
+
+  useEffect(() => {
+    if (shouldAdvancePhase) {
+      onAdvance()
+      setShouldAdvancePhase(false)
+    }
+  }, [shouldAdvancePhase, onAdvance])
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <p className="text-xl font-bold">Next color loading...</p>
+        <p className="text-xl font-bold">The next color is loading...</p>
       </div>
     )
   }

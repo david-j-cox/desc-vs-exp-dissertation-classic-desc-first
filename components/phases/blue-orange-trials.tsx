@@ -1,16 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import type { ExperimentData } from "../experiment"
 
 interface BlueOrangeTrialsProps {
   onAdvance: () => void
-  addTrialData: (trialData: Omit<ExperimentData["trials"][0], "timestamp">) => void
-  currentTrialNumber: number
+  addTrialData: (trialData: Omit<ExperimentData["trials"][0], "timestamp" | "trialNumber">) => void
 }
 
-export default function BlueOrangeTrials({ onAdvance, addTrialData, currentTrialNumber }: BlueOrangeTrialsProps) {
+export default function BlueOrangeTrials({ onAdvance, addTrialData }: BlueOrangeTrialsProps) {
   const [currentTrial, setCurrentTrial] = useState(0)
   const [showOutcome, setShowOutcome] = useState(false)
   const [outcome, setOutcome] = useState<"success" | "failure">("success")
@@ -18,6 +17,7 @@ export default function BlueOrangeTrials({ onAdvance, addTrialData, currentTrial
   const [buttonOrder, setButtonOrder] = useState<"blue-orange" | "orange-blue">(
     Math.random() < 0.5 ? "blue-orange" : "orange-blue"
   )
+  const [shouldAdvancePhase, setShouldAdvancePhase] = useState(false)
 
   const handleChoice = (choice: string) => {
     const isBlue = choice === "blue"
@@ -26,8 +26,8 @@ export default function BlueOrangeTrials({ onAdvance, addTrialData, currentTrial
     
     addTrialData({
       phase: "blue-orange-trials",
-      trialNumber: currentTrialNumber + currentTrial + 1,
       condition: "blue-orange-trials",
+      stimulus: "blue vs. orange",
       choice: choice,
       outcome: success,
       points,
@@ -46,15 +46,22 @@ export default function BlueOrangeTrials({ onAdvance, addTrialData, currentTrial
       if (currentTrial < 40) {
         setCurrentTrial(prev => prev + 1)
       } else {
-        onAdvance()
+        setShouldAdvancePhase(true)
       }
-    }, 2000)
+    }, 500)
   }
+
+  useEffect(() => {
+    if (shouldAdvancePhase) {
+      onAdvance()
+      setShouldAdvancePhase(false)
+    }
+  }, [shouldAdvancePhase, onAdvance])
 
   return (
     <div className="flex flex-col items-center space-y-8">
       {showOutcome ? (
-        <div className="text-center w-32 h-32 flex flex-col items-center justify-center">
+        <div className="text-center w-[544px] h-64 flex flex-col items-center justify-center">
           <p className={`text-4xl font-bold ${outcome === "success" ? "text-green-600" : "text-red-600"}`}>
             {outcome === "success" ? "✓" : "✗"}
           </p>
