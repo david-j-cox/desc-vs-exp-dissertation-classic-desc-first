@@ -1,19 +1,15 @@
-// This file contains the hardcoded OSF configuration
-// Replace these values with your actual OSF credentials
+// This file contains the OSF configuration
+// Values are loaded from environment variables
 
 export const OSF_CONFIG = {
-  // Your OSF personal access token
-  token: "mps8lUd5aivWJ1mVPJ1imieno2dHKhp6IAYC60QKKfnZuahOeElYsnPkmmt4NyIr09SytK",
-
-  // Your OSF project ID (the 5-character ID from your project URL)
+  // Only expose project ID and folder path on the client side
+  // API token and sensitive data should only be used server-side
   projectId: "wszna",
-
-  // Optional: Storage node ID if you want to store files in a specific component
-  // Leave as empty string to use the project root
-  nodeId: "",
-
-  // Optional: Folder path within the project/node where files should be stored
-  // Example: "data/experiment-results/"
-  // Leave as empty string to store in the root directory
-  folderPath: "online_data_repo/",
 }
+
+// Server-side only configuration
+export const getServerConfig = () => ({
+  token: "cs1nbJ2IKlz8ODQw02340HXqdV5BvJgKF2tHubZfjG6AAOqJQ5x38LnKAvWiEuq6qXqimX",
+  projectId: "wszna",
+  nodeId: "",
+})

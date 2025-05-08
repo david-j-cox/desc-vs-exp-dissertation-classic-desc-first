@@ -7,11 +7,13 @@ import type { ExperimentData } from "../experiment"
 
 interface ChoiceTrialsImagesProps {
   onAdvance: () => void
-  addTrialData: (trialData: Omit<ExperimentData["trials"][0], "timestamp">) => void
+  addTrialData: (trialData: Omit<ExperimentData["trials"][0], "timestamp" | "trialNumber">) => void
   probabilityPairs: { p1: number; p2: number }[]
   phase: ExperimentData["currentPhase"]
   onFail?: (() => void) | undefined
-  currentTrialNumber: number
+  attemptCount?: number
+  maxAttempts?: number
+  setExperimentData: (callback: (prev: ExperimentData) => ExperimentData) => void
 }
 
 type ChoicePair = {
@@ -19,11 +21,21 @@ type ChoicePair = {
   right: { stimulus: string; image: string }
 }
 
-export default function ChoiceTrialsImages({ onAdvance, addTrialData, probabilityPairs, phase, onFail, currentTrialNumber }: ChoiceTrialsImagesProps) {
+export default function ChoiceTrialsImages({ 
+  onAdvance, 
+  addTrialData, 
+  probabilityPairs, 
+  phase, 
+  onFail,
+  attemptCount = 0,
+  maxAttempts = 5,
+  setExperimentData
+}: ChoiceTrialsImagesProps) {
   const [currentPairIndex, setCurrentPairIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [pendingChoice, setPendingChoice] = useState<null | { choiceIndex: 0 | 1 }>(null)
-  const [correctChoices, setCorrectChoices] = useState<boolean[]>([])
+  const [currentAttemptChoices, setCurrentAttemptChoices] = useState<boolean[]>([])
+  const [shouldAdvancePhase, setShouldAdvancePhase] = useState(false)
 
   const choicePairs: ChoicePair[] = [
     {
@@ -37,6 +49,26 @@ export default function ChoiceTrialsImages({ onAdvance, addTrialData, probabilit
   ]
 
   useEffect(() => {
+    if (shouldAdvancePhase) {
+      // If we've hit max attempts and not all correct, update phase to final survey
+      if (attemptCount >= maxAttempts - 1 && !currentAttemptChoices.every(choice => choice)) {
+        // Update the experiment phase to final-survey and call onFail
+        setExperimentData((prev) => ({
+          ...prev,
+          currentPhase: "final-survey"
+        }))
+        if (onFail) {
+          onFail()
+        }
+      } else {
+        // Only advance normally if we haven't hit max attempts or all choices were correct
+        onAdvance()
+      }
+      setShouldAdvancePhase(false)
+    }
+  }, [shouldAdvancePhase, onAdvance, attemptCount, maxAttempts, currentAttemptChoices, setExperimentData, onFail])
+
+  useEffect(() => {
     if (pendingChoice !== null && !isLoading) {
       const currentPair = probabilityPairs[0]
       const selectedProbability = pendingChoice.choiceIndex === 0 ? currentPair.p1 : currentPair.p2
@@ -48,23 +80,22 @@ export default function ChoiceTrialsImages({ onAdvance, addTrialData, probabilit
       // Check if the choice was correct
       const isCorrectChoice = (currentPairIndex === 0 && pendingChoice.choiceIndex === 0) || // Should choose A over C
                             (currentPairIndex === 1 && pendingChoice.choiceIndex === 1)    // Should choose B over D
-      setCorrectChoices(prev => [...prev, isCorrectChoice])
+      setCurrentAttemptChoices(prev => [...prev, isCorrectChoice])
 
       // Record trial data with sequential trial number
       addTrialData({
         phase,
-        trialNumber: currentTrialNumber,
-        condition: `choice_${choicePair.left.stimulus}_vs_${choicePair.right.stimulus}`,
-        stimulus: pendingChoice.choiceIndex === 0 ? choicePair.left.stimulus : choicePair.right.stimulus,
+        condition: "choice-trials-images",
+        stimulus: `choice_${choicePair.left.stimulus}_vs_${choicePair.right.stimulus}`,
         choice: pendingChoice.choiceIndex === 0 ? choicePair.left.stimulus : choicePair.right.stimulus,
         outcome: success,
-        points: success ? 100 : 0,
+        points: success ? 0 : 0,
       })
 
       // Reset pending choice
       setPendingChoice(null)
 
-      // Move to next trial or advance phase after delay
+      // Move to next trial or handle completion
       if (currentPairIndex < choicePairs.length - 1) {
         setIsLoading(true)
         setTimeout(() => {
@@ -72,24 +103,41 @@ export default function ChoiceTrialsImages({ onAdvance, addTrialData, probabilit
           setIsLoading(false)
         }, 1000)
       } else {
-        // Check if all choices were correct
-        const allCorrect = correctChoices.every(choice => choice)
-        if (!allCorrect && typeof onFail === 'function') {
-          setIsLoading(true)
-          setTimeout(() => {
-            onFail()
-          }, 500)
-        } else {
-          onAdvance()
-        }
+        // Check if all choices in current attempt were correct
+        const allCorrect = [...currentAttemptChoices, isCorrectChoice].every(choice => choice)
+        
+        setIsLoading(true)
+        setTimeout(() => {
+          if (!allCorrect && attemptCount >= maxAttempts - 1) {
+            // If this was the last attempt and not all correct, go to final survey
+            setExperimentData((prev) => ({
+              ...prev,
+              currentPhase: "final-survey"
+            }))
+            if (onFail) {
+              onFail()
+            }
+          } else if (!allCorrect) {
+            // If not all correct but attempts remain, reset and try again
+            setCurrentAttemptChoices([])
+            setCurrentPairIndex(0)
+            if (onFail) {
+              onFail()
+            }
+          } else {
+            // All correct, advance normally
+            setShouldAdvancePhase(true)
+          }
+          setIsLoading(false)
+        }, 500)
       }
     }
-  }, [pendingChoice, currentPairIndex, probabilityPairs, choicePairs, phase, addTrialData, onAdvance, onFail, correctChoices, isLoading, currentTrialNumber])
+  }, [pendingChoice, currentPairIndex, probabilityPairs, choicePairs, phase, addTrialData, currentAttemptChoices, isLoading, attemptCount, maxAttempts, setExperimentData, onFail])
 
   const handleChoice = (choiceIndex: 0 | 1) => {
-    if (isLoading) return
-    setPendingChoice({ choiceIndex })
-  }
+    if (isLoading) return;
+    setPendingChoice({ choiceIndex });
+  };
 
   if (isLoading) {
     return (
