@@ -147,7 +147,7 @@ export default function OSFUploader({ experimentData, autoUpload = false }: OSFU
         <Alert className="bg-green-50 border-green-200">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertTitle>Upload Successful</AlertTitle>
-          <AlertDescription>Your data has been successfully uploaded to the research project.</AlertDescription>
+          <AlertDescription>Your data has been successfully uploaded to the research project. Your Prolific completion code is: CY57GJ0R</AlertDescription>
         </Alert>
       )}
 

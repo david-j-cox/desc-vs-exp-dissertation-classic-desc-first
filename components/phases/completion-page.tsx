@@ -52,6 +52,7 @@ export default function CompletionPage() {
         <p className="mb-4">
           Your responses have been recorded. Thank you for participating in our experiment.
         </p>
+        <p className="mb-4">Your Prolific completion code is: CY57GJ0R</p>
         {experimentData && (
           <div className="mb-4">
             <OSFUploader experimentData={experimentData} autoUpload={true} />
