@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ExperimentData } from "@/components/experiment"
@@ -26,11 +26,10 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
   const [currentTrial, setCurrentTrial] = useState(0)
   const [choice, setChoice] = useState<"option1" | "option2" | null>(null)
   const [isInterval, setIsInterval] = useState(false)
+  const [shouldAdvancePhase, setShouldAdvancePhase] = useState(false)
 
   const handleChoice = (selected: "option1" | "option2") => {
-    setChoice(selected)
-    setIsInterval(true)
-    // Record the trial data
+    // First, record the trial data
     addTrialData({
       phase: "description-trials",
       condition: "classic-description",
@@ -38,16 +37,29 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
       questionType: "probability",
     })
 
+    // Then update UI state
+    setChoice(selected)
+    setIsInterval(true)
+
     setTimeout(() => {
-      setIsInterval(false)
       if (currentTrial < TRIALS.length - 1) {
         setCurrentTrial(prev => prev + 1)
         setChoice(null)
+        setIsInterval(false)
       } else {
-        onAdvance()
+        setIsInterval(false)
+        setShouldAdvancePhase(true)
       }
     }, 500)
   }
+
+  // Consistent phase advancement pattern
+  useEffect(() => {
+    if (shouldAdvancePhase) {
+      onAdvance()
+      setShouldAdvancePhase(false)
+    }
+  }, [shouldAdvancePhase, onAdvance])
 
   const trial = TRIALS[currentTrial]
 
