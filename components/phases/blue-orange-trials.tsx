@@ -22,7 +22,7 @@ export default function BlueOrangeTrials({ onAdvance, addTrialData }: BlueOrange
   const handleChoice = (choice: string) => {
     const isBlue = choice === "blue"
     const success = isBlue ? true : Math.random() < 0.5
-    const points = isBlue ? 50 : (success ? 100 : 0)
+    const points = isBlue ? -50 : (success ? -100 : 0)
     
     addTrialData({
       phase: "blue-orange-trials",
@@ -62,11 +62,11 @@ export default function BlueOrangeTrials({ onAdvance, addTrialData }: BlueOrange
     <div className="flex flex-col items-center space-y-8">
       {showOutcome ? (
         <div className="text-center w-[544px] h-64 flex flex-col items-center justify-center">
-          <p className={`text-4xl font-bold ${outcome === "success" ? "text-green-600" : "text-red-600"}`}>
-            {outcome === "success" ? "✓" : "✗"}
+          <p className={`text-4xl font-bold ${outcome === "success" ? "text-red-600" : "text-green-600"}`}>
+            {outcome === "success" ? "✗" : "✓"}
           </p>
           <p className="text-xl mt-2">
-            {outcome === "success" ? `${points} Points Earned` : "No Points Earned"}
+            {outcome === "success" ? `${points} Points Lost` : "No Points Lost"}
           </p>
         </div>
       ) : (
