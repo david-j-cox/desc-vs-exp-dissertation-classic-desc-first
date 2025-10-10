@@ -11,10 +11,10 @@ type DescriptionTrial = {
 }
 
 const TRIALS: DescriptionTrial[] = [
-  { p1: 1, v1: 50, p2: 0.5, v2: 100 },
-  { p1: 1, v1: 50, p2: 0.35, v2: 100 },
-  { p1: 1, v1: 50, p2: 0.85, v2: 100 },
-  { p1: 1, v1: 50, p2: 0.5, v2: 100 },
+  { p1: 1, v1: -50, p2: 0.5, v2: -100 },
+  { p1: 1, v1: -50, p2: 0.70, v2: -100 },
+  { p1: 1, v1: -50, p2: 0.90, v2: -100 },
+  { p1: 1, v1: -50, p2: 0.5, v2: -100 },
 ]
 
 interface DescriptionTrialsProps {

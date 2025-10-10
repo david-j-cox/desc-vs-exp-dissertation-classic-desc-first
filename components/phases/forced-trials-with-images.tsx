@@ -24,9 +24,9 @@ interface Stimulus {
 // Define the exact outcomes for each trial of each stimulus
 const TRIAL_OUTCOMES: Record<string, boolean[]> = {
   A: [true, true, true, true, true, true, true, true, true, true], // 10 trials, all true
-  B: [true, false, false, true, true, false, true, false, true, false], // 10 trials, 5 true
-  C: [true, false, false, true, false, false, false, true, false, false], // 10 trials, 3 true
-  D: [false, false, false, false, false, true, false, false, false, false], // 10 trials, 1 true
+  B: [true, false, false, true, true, false, true, false, false, true], // 10 trials, 5 true
+  C: [true, true, false, true, true, true, false, true, false, true], // 10 trials, 7 true
+  D: [true, true, true, true, true, true, true, false, true, true], // 10 trials, 9 true
 }
 
 export default function ForcedTrialsWithImages({ onAdvance, addTrialData, onFail, setExperimentData, experimentData }: ForcedTrialsWithImagesProps) {
@@ -41,10 +41,10 @@ export default function ForcedTrialsWithImages({ onAdvance, addTrialData, onFail
   const TOTAL_TRIALS = TRIALS_PER_STIMULUS * 4 // 4 stimuli, 10 trials each
 
   const stimuli: Stimulus[] = [
-    { id: "A", probability: 1, color: "bg-red-500", points: 50, imageUrl: "/images/stimulus-a.png" },
-    { id: "B", probability: 0.5, color: "bg-blue-500", points: 100, imageUrl: "/images/stimulus-b.png" },
-    { id: "C", probability: 0.3, color: "bg-green-500", points: 100, imageUrl: "/images/stimulus-c.png" },
-    { id: "D", probability: 0.1, color: "bg-purple-500", points: 100, imageUrl: "/images/stimulus-d.png" },
+    { id: "A", probability: 1, color: "bg-red-500", points: -50, imageUrl: "/images/stimulus-a.png" },
+    { id: "B", probability: 0.5, color: "bg-blue-500", points: -100, imageUrl: "/images/stimulus-b.png" },
+    { id: "C", probability: 0.3, color: "bg-green-500", points: -100, imageUrl: "/images/stimulus-c.png" },
+    { id: "D", probability: 0.1, color: "bg-purple-500", points: -100, imageUrl: "/images/stimulus-d.png" },
   ]
 
   const handleChoice = () => {
@@ -121,11 +121,11 @@ export default function ForcedTrialsWithImages({ onAdvance, addTrialData, onFail
     <div className="flex flex-col items-center justify-center min-h-[400px]">
       {showOutcome ? (
         <div className="text-center">
-          <p className={`text-4xl font-bold ${outcome === "success" ? "text-green-600" : "text-red-600"}`}>
-            {outcome === "success" ? "✓" : "✗"}
+          <p className={`text-4xl font-bold ${outcome === "success" ? "text-red-600" : "text-green-600"}`}>
+            {outcome === "success" ? "✗" : "✓"}
           </p>
           <p className="text-xl mt-2">
-            {outcome === "success" ? `${currentStimulus.points} Points Earned` : "No Points Earned"}
+            {outcome === "success" ? `${currentStimulus.points} Points Lost` : "No Points Lost"}
           </p>
         </div>
       ) : (

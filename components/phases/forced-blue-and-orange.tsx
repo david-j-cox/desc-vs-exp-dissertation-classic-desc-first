@@ -22,8 +22,8 @@ interface ButtonConfig {
 export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperimentData, experimentData }: ForcedBlueAndOrangeProps) {
   const router = useRouter()
   const buttons: ButtonConfig[] = [
-    { id: "blue", color: "bg-blue-500", probability: 1.0, points: 50 },
-    { id: "orange", color: "bg-orange-500", probability: 0.5, points: 100 },
+    { id: "blue", color: "bg-blue-500", probability: 1.0, points: -50 },
+    { id: "orange", color: "bg-orange-500", probability: 0.5, points: -100 },
   ]
 
   const [currentButtonIndex, setCurrentButtonIndex] = useState(0)
@@ -38,7 +38,7 @@ export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperi
   // Define the exact outcomes for each trial of each button
   const TRIAL_OUTCOMES: Record<string, boolean[]> = {
     blue: [true, true, true, true, true, true, true, true, true, true], // 10 trials, all true
-    orange: [true, false, false, true, true, false, true, false, true, false], // 10 trials, 5 true
+    orange: [true, false, false, true, false, false, true, false, true, true], // 10 trials, 5 true
   }
 
   const currentButton = buttons[currentButtonIndex]
@@ -119,11 +119,11 @@ export default function ForcedBlueAndOrange({ onAdvance, addTrialData, setExperi
           </Button>
         ) : (
           <div className="text-center w-64 h-64 flex flex-col items-center justify-center">
-            <p className={`text-4xl font-bold ${outcome ? "text-green-600" : "text-red-600"}`}>
-              {outcome ? "✓" : "✗"}
+            <p className={`text-4xl font-bold ${outcome ? "text-red-600" : "text-green-600"}`}>
+              {outcome ? "✗" : "✓"}
             </p>
             <p className="text-xl mt-2">
-              {outcome ? `${currentButton.points} Points Earned` : "No Points Earned"}
+              {outcome ? `${currentButton.points} Points Lost` : "No Points Lost"}
             </p>
           </div>
         )}
