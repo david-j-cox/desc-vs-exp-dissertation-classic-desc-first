@@ -82,7 +82,7 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
                   onClick={() => handleChoice("option1")}
                   disabled={isInterval}
                 >
-                  {trial.p1 * 100}% chance of ${trial.v1}
+                  {trial.p1 * 100}% chance of {trial.v1}
                 </Button>
                 
                 <Button
@@ -91,7 +91,7 @@ export default function DescriptionTrials({ onAdvance, addTrialData }: Descripti
                   onClick={() => handleChoice("option2")}
                   disabled={isInterval}
                 >
-                  {trial.p2 * 100}% chance of ${trial.v2}
+                  {trial.p2 * 100}% chance of {trial.v2}
                 </Button>
               </div>
             )}
